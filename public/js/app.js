@@ -1,4 +1,4 @@
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbzjYR2mhbZBmrGUDCx3o9K3oesyiuxyS00ydwHtuf4J-n8K1rp8_c5rVKhNXTKIex8/exec';
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbwL7fTLslJOJZYQ7IkS-jQzSmip8kywp7K0we0aRvULamUs9PN5RKD5IbXS3Vbgo8gU/exec';
 var mesAtual = '';
 var editandoId = null;
 var alertCallback = null;
@@ -31,8 +31,13 @@ function initBridge() {
     document.body.appendChild(_bridgeIframe);
 
     var timeout = setTimeout(function() {
-      reject(new Error('Timeout ao carregar bridge'));
-    }, 20000);
+      reject(new Error('Timeout ao carregar bridge - verifique se o Code.gs foi publicado no GAS'));
+    }, 30000);
+
+    _bridgeIframe.onerror = function() {
+      clearTimeout(timeout);
+      reject(new Error('Falha ao carregar iframe do GAS'));
+    };
 
     window.addEventListener('message', function handler(e) {
       if (e.data && e.data.ready === true) {

@@ -39,22 +39,22 @@ function getBridgeHtml() {
     'var params=msg.params||{};' +
     'function respond(result,error){' +
     'try{e.source.postMessage({callId:callId,result:result,error:error?(error.message||String(error)):null},e.origin||"*");}catch(e){}}' +
-    'google.script.run.withSuccessHandler(respond).withFailureHandler(function(err){respond(null,err);});' +
+    'var runner=google.script.run.withSuccessHandler(respond).withFailureHandler(function(err){respond(null,err);});' +
     'switch(msg.action){' +
-    'case"validarLogin":google.script.run.validarLogin(params.usuario,params.senha);break;' +
-    'case"getMesAtual":google.script.run.getMesAtual();break;' +
-    'case"getResumo":google.script.run.getResumo(params.mesReferencia);break;' +
-    'case"getCompra":google.script.run.getCompra(params.idCompra);break;' +
-    'case"addCompra":google.script.run.addCompra(params.dataCompra,params.descricao,params.valorTotal,params.totalParcelas,params.valorParcelas);break;' +
-    'case"editCompra":google.script.run.editCompra(params.idCompra,params.dataCompra,params.descricao,params.valorTotal,params.totalParcelas,params.valorParcelas);break;' +
-    'case"deleteCompra":google.script.run.deleteCompra(params.idCompra);break;' +
-    'case"updateParcela":google.script.run.updateParcela(params.id,params.pago===true||params.pago==="true",Number(params.valorPago),params.dataPagamento);break;' +
-    'case"addAvulso":google.script.run.addAvulso(params.mesReferencia,Number(params.valor),params.dataPagamento,params.descricao);break;' +
-    'case"deleteAvulso":google.script.run.deleteAvulso(params.id);break;' +
-    'case"setConfig":google.script.run.setConfig(params.chave,params.valor);break;' +
+    'case"validarLogin":runner.validarLogin(params.usuario,params.senha);break;' +
+    'case"getMesAtual":runner.getMesAtual();break;' +
+    'case"getResumo":runner.getResumo(params.mesReferencia);break;' +
+    'case"getCompra":runner.getCompra(params.idCompra);break;' +
+    'case"addCompra":runner.addCompra(params.dataCompra,params.descricao,params.valorTotal,params.totalParcelas,params.valorParcelas);break;' +
+    'case"editCompra":runner.editCompra(params.idCompra,params.dataCompra,params.descricao,params.valorTotal,params.totalParcelas,params.valorParcelas);break;' +
+    'case"deleteCompra":runner.deleteCompra(params.idCompra);break;' +
+    'case"updateParcela":runner.updateParcela(params.id,params.pago===true||params.pago==="true",Number(params.valorPago),params.dataPagamento);break;' +
+    'case"addAvulso":runner.addAvulso(params.mesReferencia,Number(params.valor),params.dataPagamento,params.descricao);break;' +
+    'case"deleteAvulso":runner.deleteAvulso(params.id);break;' +
+    'case"setConfig":runner.setConfig(params.chave,params.valor);break;' +
     '}' +
     '});' +
-    'parent.postMessage({ready:true},"*");' +
+    '(top||parent).postMessage({ready:true},"*");' +
     'ready=true;' +
     '})();' +
     '<\/script><\/body><\/html>';
