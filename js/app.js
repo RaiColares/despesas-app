@@ -1,4 +1,4 @@
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbxp6dm1om7Bqgnmg8pwky9VaGevx6fY9cC7gb0J7S1rCSCHrzt0bnlywEp8Zyrtu6jy/exec';
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbyU_fNL0bxwHZ7PMeFdKBgSBhgSKuRlmHPG79kao2sJPnaWw_OEz_HVwwdXwFS-IdX1/exec';
 
 var mesAtual = '';
 var editandoId = null;
