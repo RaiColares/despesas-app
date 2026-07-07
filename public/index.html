@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Despesas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="logo">&#9650;</div>
+    <h1>Registro de Despesas</h1>
+    <p>Faça login para acessar o sistema</p>
+    <div class="login-error" id="loginError">Usuário ou senha incorretos.</div>
+    <div class="form-group">
+      <label>Usuário</label>
+      <input type="text" id="loginUser" value="Aline" placeholder="Digite seu usuário" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <div class="password-wrapper">
+        <input type="password" id="loginPass" placeholder="Digite sua senha" autocomplete="off">
+        <button type="button" class="toggle-senha" onclick="toggleSenha()" tabindex="-1">&#128065;</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="loginBtn" onclick="fazerLogin()">Entrar</button>
+  </div>
+</div>
+
+<div id="app">
+  <div class="app-header">
+    <div class="app-header-inner">
+      <h2>&#9650; Registro de Despesas</h2>
+      <div class="user-info">
+        <span id="userDisplay">Aline</span>
+        <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="nav-bar">
+      <div class="nav-month">
+        <button class="nav-btn" onclick="navegarMes(-1)" title="Mês Anterior">&#9664;</button>
+        <span class="month-display" id="monthDisplay">Carregando...</span>
+        <button class="nav-btn" onclick="navegarMes(1)" title="Próximo Mês">&#9654;</button>
+      </div>
+      <div class="nav-info">
+        <span class="pagamento-label" id="pagamentoLabel">Pagamento: ---</span>
+        <div class="vencimento-group">
+          <label>Vencimento:</label>
+          <input type="number" id="vencimentoInput" min="1" max="31" onchange="salvarVencimento()">
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-grid" id="summaryGrid">
+      <div class="summary-card" id="cardSaldoAnterior">
+        <div class="label" id="labelSaldoAnterior">Saldo Anterior</div>
+        <div class="value default" id="valueSaldoAnterior">R$ 0,00</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Total Débito Atual</div>
+        <div class="value default" id="valueDebitoAtual">R$ 0,00</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Total Débito Geral</div>
+        <div class="value default" id="valueDebitoGeral">R$ 0,00</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Total Valor Pago</div>
+        <div class="value default" id="valueTotalPago">R$ 0,00</div>
+      </div>
+    </div>
+
+    <div class="summary-card saldo-pendente" style="margin-bottom:20px;">
+      <div class="label">Saldo Pendente</div>
+      <div class="value" id="valueSaldoPendente">R$ 0,00</div>
+    </div>
+
+    <div class="avulso-section">
+      <div class="avulso-header" onclick="toggleAvulso()">
+        <h3>Valor Avulso</h3>
+        <button class="avulso-toggle" id="avulsoToggle">&#9660;</button>
+      </div>
+      <div class="avulso-body" id="avulsoBody">
+        <div class="avulso-form">
+          <div class="form-group">
+            <label>Valor (R$)</label>
+            <input type="number" id="avulsoValor" step="0.01" min="0" placeholder="0,00">
+          </div>
+          <div class="form-group">
+            <label>Data Pagamento</label>
+            <input type="date" id="avulsoData">
+          </div>
+          <div class="form-group">
+            <label>Descrição</label>
+            <input type="text" id="avulsoDesc" placeholder="Descrição do avulso">
+          </div>
+          <div class="form-group" style="flex:0 0 auto;">
+            <button class="btn btn-success" onclick="registrarAvulso()">Adicionar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3 id="formTitle">Nova Compra / Empréstimo</h3>
+      <input type="hidden" id="editId">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Data da Compra</label>
+          <input type="date" id="inputData">
+        </div>
+        <div class="form-group">
+          <label>Descrição</label>
+          <input type="text" id="inputDesc" placeholder="Ex: Geladeira, Curso, etc">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Valor Total (R$)</label>
+          <input type="number" id="inputValorTotal" step="0.01" min="0" placeholder="0,00" oninput="calcularValorParcela()">
+        </div>
+        <div class="form-group">
+          <label>Total de Parcelas</label>
+          <input type="number" id="inputParcelas" min="1" value="1" oninput="calcularValorParcela()">
+        </div>
+        <div class="form-group">
+          <label>Valor das Parcelas (R$)</label>
+          <input type="number" id="inputValorParcela" step="0.01" min="0" placeholder="0,00">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="btn-group">
+          <button class="btn btn-primary" id="btnSalvar" onclick="salvarCompra()">Registrar</button>
+          <button class="btn btn-secondary" id="btnCancelar" onclick="cancelarEdicao()" style="display:none;">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-section">
+      <div class="table-header">
+        <h3 id="tableTitle">Registros do Mês</h3>
+        <span style="font-size:13px;color:#64748b;" id="totalRegistros">0 registro(s)</span>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Descrição</th>
+              <th>Parcela</th>
+              <th>Valor</th>
+              <th style="text-align:center;">Pago</th>
+              <th>Valor Pago</th>
+              <th>Data Pagto</th>
+              <th style="text-align:center;">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaParcelas">
+            <tr class="vazio-row"><td colspan="8">Nenhum registro para este mês.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="alert-overlay" id="alertOverlay">
+  <div class="alert-box">
+    <h3 id="alertTitle">Confirmação</h3>
+    <p id="alertMessage">Deseja realmente realizar esta ação?</p>
+    <div class="alert-btns">
+      <button class="btn btn-secondary" onclick="fecharAlert(false)">Cancelar</button>
+      <button class="btn btn-primary" id="alertConfirmBtn" onclick="fecharAlert(true)">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
