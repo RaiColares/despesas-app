@@ -7,13 +7,13 @@ Sistema web de registro de despesas com integracao ao Google Sheets.
 ```
 despesas-app/
 ├── backend/
-│   └── Code.gs          # Google Apps Script (backend API)
+│   └── Code.gs            # Google Apps Script (backend API)
 ├── public/
-│   ├── index.html        # Frontend principal
 │   ├── css/
-│   │   └── style.css     # Estilos
+│   │   └── style.css      # Estilos
 │   └── js/
-│       └── app.js        # Logica do frontend
+│       └── app.js         # Logica do frontend
+├── index.html              # Frontend principal (raiz para GitHub Pages)
 ├── .gitignore
 └── README.md
 ```
@@ -36,13 +36,12 @@ despesas-app/
 
 As credenciais ficam armazenadas no `PropertiesService` do GAS, fora do codigo-fonte e da planilha.
 
-### 3. Frontend
+### 3. Frontend (GitHub Pages)
 
 1. Edite `public/js/app.js` e altere a variavel `GAS_URL` para a URL do seu deploy
-2. Hospede a pasta `public/` em qualquer servidor estatico:
-   - **GitHub Pages**: crie um repositorio e faça upload da pasta `public/`
-   - **Local**: use `npx serve public/`, `python3 -m http.server`, etc.
-3. Acesse o frontend pelo navegador e faça login
+2. No repositório: **Settings > Pages > Source > Deploy from a branch**
+   - Branch: `main`, pasta: **`/` (root)**
+3. Apos alguns minutos, o frontend estara disponivel em `https://[seuuser].github.io/[repositorio]/`
 
 ## Funcionalidades
 
