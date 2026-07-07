@@ -1,35 +1,39 @@
-<script>
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbxp6dm1om7Bqgnmg8pwky9VaGevx6fY9cC7gb0J7S1rCSCHrzt0bnlywEp8Zyrtu6jy/exec';
+
 var mesAtual = '';
 var editandoId = null;
 var alertCallback = null;
+var jsonpCounter = 0;
 
 function callAPI(action, params) {
   return new Promise(function(resolve, reject) {
-    var runner = google.script.run
-      .withSuccessHandler(function(result) {
-        if (result && result.success === false) {
-          reject(new Error(result.message || 'Erro na operacao'));
-        } else {
-          resolve(result);
-        }
-      })
-      .withFailureHandler(function(err) {
-        reject(new Error(err.message || String(err)));
-      });
-    switch(action) {
-      case 'validarLogin': runner.validarLogin(params.usuario, params.senha); break;
-      case 'getMesAtual': runner.getMesAtual(); break;
-      case 'getResumo': runner.getResumo(params.mesReferencia); break;
-      case 'getCompra': runner.getCompra(params.idCompra); break;
-      case 'addCompra': runner.addCompra(params.dataCompra, params.descricao, params.valorTotal, params.totalParcelas, params.valorParcelas); break;
-      case 'editCompra': runner.editCompra(params.idCompra, params.dataCompra, params.descricao, params.valorTotal, params.totalParcelas, params.valorParcelas); break;
-      case 'deleteCompra': runner.deleteCompra(params.idCompra); break;
-      case 'updateParcela': runner.updateParcela(params.id, params.pago === true || params.pago === 'true', Number(params.valorPago), params.dataPagamento); break;
-      case 'addAvulso': runner.addAvulso(params.mesReferencia, Number(params.valor), params.dataPagamento, params.descricao); break;
-      case 'deleteAvulso': runner.deleteAvulso(params.id); break;
-      case 'setConfig': runner.setConfig(params.chave, params.valor); break;
-      default: reject(new Error('Acao desconhecida: ' + action));
-    }
+    var callbackName = 'jp' + (++jsonpCounter) + '_' + Date.now();
+    var payload = encodeURIComponent(JSON.stringify(params || {}));
+    var url = GAS_URL + '?callback=' + callbackName + '&action=' + action + '&payload=' + payload;
+
+    var timeout = setTimeout(function() {
+      delete window[callbackName];
+      reject(new Error('Tempo limite excedido'));
+    }, 20000);
+
+    window[callbackName] = function(result) {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      if (result && result.success === false) {
+        reject(new Error(result.message || 'Erro na operacao'));
+      } else {
+        resolve(result);
+      }
+    };
+
+    var script = document.createElement('script');
+    script.src = url;
+    script.onerror = function() {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      reject(new Error('Erro de conexao'));
+    };
+    document.head.appendChild(script);
   });
 }
 
@@ -568,4 +572,3 @@ window.onclick = function(event) {
     fecharAlert(false);
   }
 };
-</script>

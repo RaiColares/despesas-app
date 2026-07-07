@@ -12,14 +12,46 @@ function doGet(e) {
       .setTitle('Configurar Credenciais')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
-  return HtmlService.createHtmlOutputFromFile('App')
-    .setTitle('Registro de Despesas')
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1.0')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  if (e && e.parameter && e.parameter.callback) {
+    var result = executarAcao(e);
+    return jsonpResponse(e.parameter.callback, result);
+  }
+  return ContentService.createTextOutput('OK').setMimeType(ContentService.MimeType.TEXT);
 }
 
-function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+function jsonpResponse(callbackName, result) {
+  return ContentService
+    .createTextOutput(callbackName + '(' + JSON.stringify(result) + ')')
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
+
+function executarAcao(e) {
+  var action = e.parameter.action;
+  var params = {};
+  try {
+    params = JSON.parse(e.parameter.payload || '{}');
+  } catch (err) {
+    params = {};
+  }
+  try {
+    switch (action) {
+      case 'validarLogin': return validarLogin(params.usuario, params.senha);
+      case 'getMesAtual': return getMesAtual();
+      case 'getResumo': return getResumo(params.mesReferencia);
+      case 'getCompra': return getCompra(params.idCompra);
+      case 'addCompra': return addCompra(params.dataCompra, params.descricao, params.valorTotal, params.totalParcelas, params.valorParcelas);
+      case 'editCompra': return editCompra(params.idCompra, params.dataCompra, params.descricao, params.valorTotal, params.totalParcelas, params.valorParcelas);
+      case 'deleteCompra': return deleteCompra(params.idCompra);
+      case 'updateParcela': return updateParcela(params.id, params.pago === true || params.pago === 'true', Number(params.valorPago), params.dataPagamento);
+      case 'addAvulso': return addAvulso(params.mesReferencia, Number(params.valor), params.dataPagamento, params.descricao);
+      case 'deleteAvulso': return deleteAvulso(params.id);
+      case 'setConfig': return setConfig(params.chave, params.valor);
+      case 'setup': return doSetup(params.usuario, params.senha);
+      default: return { success: false, message: 'Acao desconhecida: ' + action };
+    }
+  } catch (err) {
+    return { success: false, message: err.message || 'Erro interno' };
+  }
 }
 
 
