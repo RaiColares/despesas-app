@@ -1,94 +1,35 @@
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbwL7fTLslJOJZYQ7IkS-jQzSmip8kywp7K0we0aRvULamUs9PN5RKD5IbXS3Vbgo8gU/exec';
+<script>
 var mesAtual = '';
 var editandoId = null;
 var alertCallback = null;
 
-var _bridgeIframe = null;
-var _bridgeReady = false;
-var _bridgeInitPromise = null;
-var _pendingCalls = {};
-var _callId = 0;
-
-function initBridge() {
-  if (_bridgeReady) return Promise.resolve();
-  if (_bridgeInitPromise) return _bridgeInitPromise;
-
-  _bridgeInitPromise = new Promise(function(resolve, reject) {
-    var url = GAS_URL;
-    if (!url) {
-      url = localStorage.getItem('gas_url');
-      if (!url) {
-        reject(new Error('URL do GAS nao configurada.'));
-        return;
-      }
-      GAS_URL = url;
-    }
-    if (url.endsWith('/')) url = url.slice(0, -1);
-
-    _bridgeIframe = document.createElement('iframe');
-    _bridgeIframe.style.display = 'none';
-    _bridgeIframe.src = url + '?bridge=1';
-    document.body.appendChild(_bridgeIframe);
-
-    var timeout = setTimeout(function() {
-      reject(new Error('Timeout ao carregar bridge - verifique se o Code.gs foi publicado no GAS'));
-    }, 30000);
-
-    _bridgeIframe.onerror = function() {
-      clearTimeout(timeout);
-      reject(new Error('Falha ao carregar iframe do GAS'));
-    };
-
-    window.addEventListener('message', function handler(e) {
-      if (e.data && e.data.ready === true) {
-        _bridgeReady = true;
-        clearTimeout(timeout);
-        window.removeEventListener('message', handler);
-        resolve();
-      }
-      if (e.data && e.data.callId !== undefined) {
-        var cb = _pendingCalls[e.data.callId];
-        if (cb) {
-          clearTimeout(cb.timeout);
-          delete _pendingCalls[e.data.callId];
-          if (e.data.error) cb.reject(new Error(e.data.error));
-          else {
-            var result = e.data.result;
-            if (result && result.success === false) {
-              cb.reject(new Error(result.message || 'Erro na operacao'));
-            } else {
-              cb.resolve(result);
-            }
-          }
-        }
-      }
-    });
-  });
-
-  return _bridgeInitPromise;
-}
-
 function callAPI(action, params) {
   return new Promise(function(resolve, reject) {
-    initBridge()
-      .then(function() {
-        var id = ++_callId;
-        var timeout = setTimeout(function() {
-          if (_pendingCalls[id]) {
-            delete _pendingCalls[id];
-            reject(new Error('Timeout - sem resposta do servidor'));
-          }
-        }, 30000);
-        _pendingCalls[id] = { resolve: resolve, reject: reject, timeout: timeout };
-        _bridgeIframe.contentWindow.postMessage({
-          callId: id,
-          action: action,
-          params: params || {}
-        }, '*');
+    var runner = google.script.run
+      .withSuccessHandler(function(result) {
+        if (result && result.success === false) {
+          reject(new Error(result.message || 'Erro na operacao'));
+        } else {
+          resolve(result);
+        }
       })
-      .catch(function(err) {
-        reject(err);
+      .withFailureHandler(function(err) {
+        reject(new Error(err.message || String(err)));
       });
+    switch(action) {
+      case 'validarLogin': runner.validarLogin(params.usuario, params.senha); break;
+      case 'getMesAtual': runner.getMesAtual(); break;
+      case 'getResumo': runner.getResumo(params.mesReferencia); break;
+      case 'getCompra': runner.getCompra(params.idCompra); break;
+      case 'addCompra': runner.addCompra(params.dataCompra, params.descricao, params.valorTotal, params.totalParcelas, params.valorParcelas); break;
+      case 'editCompra': runner.editCompra(params.idCompra, params.dataCompra, params.descricao, params.valorTotal, params.totalParcelas, params.valorParcelas); break;
+      case 'deleteCompra': runner.deleteCompra(params.idCompra); break;
+      case 'updateParcela': runner.updateParcela(params.id, params.pago === true || params.pago === 'true', Number(params.valorPago), params.dataPagamento); break;
+      case 'addAvulso': runner.addAvulso(params.mesReferencia, Number(params.valor), params.dataPagamento, params.descricao); break;
+      case 'deleteAvulso': runner.deleteAvulso(params.id); break;
+      case 'setConfig': runner.setConfig(params.chave, params.valor); break;
+      default: reject(new Error('Acao desconhecida: ' + action));
+    }
   });
 }
 
@@ -627,3 +568,4 @@ window.onclick = function(event) {
     fecharAlert(false);
   }
 };
+</script>

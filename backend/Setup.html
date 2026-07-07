@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Configurar Credenciais</title>
+  <style>
+    body{font-family:system-ui,-apple-system,sans-serif;max-width:420px;margin:60px auto;padding:24px;background:#f0f2f5;}
+    .card{background:white;border-radius:20px;padding:40px;box-shadow:0 10px 40px rgba(0,0,0,0.1);}
+    h1{font-size:24px;margin:0 0 4px;}
+    p{color:#64748b;margin:0 0 24px;font-size:14px;}
+    label{display:block;font-size:13px;font-weight:600;color:#475569;margin-bottom:4px;}
+    input{width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:12px;font-size:15px;box-sizing:border-box;margin-bottom:16px;}
+    input:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 4px rgba(79,70,229,0.1);}
+    button{width:100%;padding:12px 24px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 4px 15px rgba(79,70,229,0.3);}
+    button:hover{transform:translateY(-1px);}
+    .msg{padding:12px 16px;border-radius:10px;font-size:14px;margin-bottom:16px;display:none;}
+    .msg.success{background:#f0fdf4;color:#059669;border:1px solid #86efac;display:block;}
+    .msg.error{background:#fef2f2;color:#dc2626;border:1px solid #fecaca;display:block;}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Configurar Credenciais</h1>
+    <p>Defina o usuario e senha para acessar o sistema de despesas.</p>
+    <div class="msg" id="msg"></div>
+    <form id="setupForm" onsubmit="salvar(event)">
+      <label for="usuario">Usuario</label>
+      <input type="text" id="usuario" value="Aline" required>
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" required>
+      <button type="submit">Salvar Credenciais</button>
+    </form>
+    <div id="done" style="display:none;text-align:center;">
+      <p style="color:#059669;font-weight:600;margin-bottom:8px;">Configurado com sucesso!</p>
+      <p style="font-size:13px;">Agora voce pode fechar esta pagina e acessar o sistema pelo frontend.</p>
+    </div>
+  </div>
+  <script>
+    function salvar(e) {
+      e.preventDefault();
+      var msg=document.getElementById("msg");
+      msg.className="msg";msg.textContent="";
+      google.script.run
+        .withSuccessHandler(function(r){
+          msg.className="msg success";
+          msg.textContent=r.message||"Credenciais salvas!";
+          document.getElementById("setupForm").style.display="none";
+          document.getElementById("done").style.display="block";
+        })
+        .withFailureHandler(function(err){
+          msg.className="msg error";
+          msg.textContent=err.message||"Erro ao salvar credenciais";
+        })
+        .doSetup(document.getElementById("usuario").value,document.getElementById("senha").value);
+    }
+  </script>
+</body>
+</html>

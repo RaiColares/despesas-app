@@ -1,120 +1,28 @@
 /**
  * SISTEMA DE REGISTRO DE DESPESAS
- * Google Apps Script - REST API Backend
+ * Google Apps Script - Backend + Frontend
  *
  * Publique como aplicativo web (Executar como: "Eu", Acesso: "Qualquer pessoa")
- * 1. Copie este arquivo para o editor do GAS
- * 2. Publique como aplicativo web
- * 3. Visite a URL gerada + "?action=setup" para configurar as credenciais
- * 4. Configure a GAS_URL no frontend (public/js/app.js)
+ * Copie TODOS os arquivos da pasta backend/ para o editor do GAS.
  */
 
 function doGet(e) {
-  if (e && e.parameter) {
-    if (e.parameter.bridge === '1') {
-      return HtmlService.createHtmlOutput(getBridgeHtml())
-        .setTitle('')
-        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-    }
-    if (e.parameter.action === 'setup') {
-      return HtmlService.createHtmlOutput(getSetupHtml())
-        .setTitle('Configurar Credenciais')
-        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-    }
+  if (e && e.parameter && e.parameter.action === 'setup') {
+    return HtmlService.createHtmlOutputFromFile('Setup')
+      .setTitle('Configurar Credenciais')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
-  return ContentService
-    .createTextOutput(JSON.stringify({ status: 'online', app: 'Registro de Despesas' }))
-    .setMimeType(ContentService.MimeType.JSON);
+  return HtmlService.createHtmlOutputFromFile('App')
+    .setTitle('Registro de Despesas')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1.0')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
-function getBridgeHtml() {
-  return '<!DOCTYPE html><html><head><base target="_top"><meta charset="UTF-8"></head><body><script>' +
-    '(function(){' +
-    'var ready=false;' +
-    'window.addEventListener("message",function(e){' +
-    'var msg=e.data;' +
-    'if(!msg||msg.action===undefined)return;' +
-    'if(!ready)return;' +
-    'var callId=msg.callId;' +
-    'var params=msg.params||{};' +
-    'function respond(result,error){' +
-    'try{e.source.postMessage({callId:callId,result:result,error:error?(error.message||String(error)):null},e.origin||"*");}catch(e){}}' +
-    'var runner=google.script.run.withSuccessHandler(respond).withFailureHandler(function(err){respond(null,err);});' +
-    'switch(msg.action){' +
-    'case"validarLogin":runner.validarLogin(params.usuario,params.senha);break;' +
-    'case"getMesAtual":runner.getMesAtual();break;' +
-    'case"getResumo":runner.getResumo(params.mesReferencia);break;' +
-    'case"getCompra":runner.getCompra(params.idCompra);break;' +
-    'case"addCompra":runner.addCompra(params.dataCompra,params.descricao,params.valorTotal,params.totalParcelas,params.valorParcelas);break;' +
-    'case"editCompra":runner.editCompra(params.idCompra,params.dataCompra,params.descricao,params.valorTotal,params.totalParcelas,params.valorParcelas);break;' +
-    'case"deleteCompra":runner.deleteCompra(params.idCompra);break;' +
-    'case"updateParcela":runner.updateParcela(params.id,params.pago===true||params.pago==="true",Number(params.valorPago),params.dataPagamento);break;' +
-    'case"addAvulso":runner.addAvulso(params.mesReferencia,Number(params.valor),params.dataPagamento,params.descricao);break;' +
-    'case"deleteAvulso":runner.deleteAvulso(params.id);break;' +
-    'case"setConfig":runner.setConfig(params.chave,params.valor);break;' +
-    '}' +
-    '});' +
-    '(top||parent).postMessage({ready:true},"*");' +
-    'ready=true;' +
-    '})();' +
-    '<\/script><\/body><\/html>';
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
-function getSetupHtml() {
-  return '<!DOCTYPE html><html><head><base target="_top"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' +
-    '<title>Configurar Credenciais</title>' +
-    '<style>' +
-    'body{font-family:system-ui,-apple-system,sans-serif;max-width:420px;margin:60px auto;padding:24px;background:#f0f2f5;}' +
-    '.card{background:white;border-radius:20px;padding:40px;box-shadow:0 10px 40px rgba(0,0,0,0.1);}' +
-    'h1{font-size:24px;margin:0 0 4px;}' +
-    'p{color:#64748b;margin:0 0 24px;font-size:14px;}' +
-    'label{display:block;font-size:13px;font-weight:600;color:#475569;margin-bottom:4px;}' +
-    'input{width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:12px;font-size:15px;box-sizing:border-box;margin-bottom:16px;}' +
-    'input:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 4px rgba(79,70,229,0.1);}' +
-    'button{width:100%;padding:12px 24px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 4px 15px rgba(79,70,229,0.3);}' +
-    'button:hover{transform:translateY(-1px);}' +
-    '.msg{padding:12px 16px;border-radius:10px;font-size:14px;margin-bottom:16px;display:none;}' +
-    '.msg.success{background:#f0fdf4;color:#059669;border:1px solid #86efac;display:block;}' +
-    '.msg.error{background:#fef2f2;color:#dc2626;border:1px solid #fecaca;display:block;}' +
-    '</style>' +
-    '</head><body>' +
-    '<div class="card">' +
-    '<h1>Configurar Credenciais</h1>' +
-    '<p>Defina o usuario e senha para acessar o sistema de despesas.</p>' +
-    '<div class="msg" id="msg"></div>' +
-    '<form id="setupForm" onsubmit="salvar(event)">' +
-    '<label for="usuario">Usuario</label>' +
-    '<input type="text" id="usuario" value="Aline" required>' +
-    '<label for="senha">Senha</label>' +
-    '<input type="password" id="senha" required>' +
-    '<button type="submit">Salvar Credenciais</button>' +
-    '</form>' +
-    '<div id="done" style="display:none;text-align:center;">' +
-    '<p style="color:#059669;font-weight:600;margin-bottom:8px;">Configurado com sucesso!</p>' +
-    '<p style="font-size:13px;">Agora voce pode fechar esta pagina e acessar o sistema pelo frontend.</p>' +
-    '</div>' +
-    '</div>' +
-    '<script>' +
-    'function salvar(e){' +
-    'e.preventDefault();' +
-    'var msg=document.getElementById("msg");' +
-    'msg.className="msg";msg.textContent="";' +
-    'google.script.run' +
-    '.withSuccessHandler(function(r){' +
-    'msg.className="msg success";' +
-    'msg.textContent=r.message||"Credenciais salvas!";' +
-    'document.getElementById("setupForm").style.display="none";' +
-    'document.getElementById("done").style.display="block";' +
-    '})' +
-    '.withFailureHandler(function(err){' +
-    'msg.className="msg error";' +
-    'msg.textContent=err.message||"Erro ao salvar credenciais";' +
-    '})' +
-    '.doSetup(document.getElementById("usuario").value,document.getElementById("senha").value);' +
-    '}' +
-    '<\/script>' +
-    '</body></html>';
-}
+
 
 function doSetup(usuario, senha) {
   var props = PropertiesService.getScriptProperties();
